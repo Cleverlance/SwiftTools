@@ -71,3 +71,18 @@ public struct IntShellArgument: HelpableShellArgument {
         )
     }
 }
+
+public struct BoolShellArgument: HelpableShellArgument {
+    public let name: String
+    public let help: ShellArgumentHelp
+
+    public init(name: String, isOptional: Bool, description: String) {
+        self.name = name
+        help = ShellArgumentHelp(
+            name: name,
+            value: "bool",
+            isOptional: isOptional,
+            description: description
+        )
+    }
+}

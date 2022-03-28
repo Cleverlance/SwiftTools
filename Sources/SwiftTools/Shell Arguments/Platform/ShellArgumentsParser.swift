@@ -11,6 +11,7 @@ public protocol ShellArgumentsParser {
     func parseString(argument: StringShellArgument, from arguments: [String]) throws -> String
     func parseOptionalString(argument: StringShellArgument, from arguments: [String]) throws -> String?
     func parseInt(argument: IntShellArgument, from arguments: [String]) throws -> Int
+    func parseOptionalBool(argument: BoolShellArgument, from arguments: [String], defaultValue: Bool) throws -> Bool
 }
 
 final class ShellArgumentsParserImpl: ShellArgumentsParser {
@@ -86,5 +87,17 @@ final class ShellArgumentsParserImpl: ShellArgumentsParser {
             throw ToolsError(description: "Shell parse error: Missing value of atribut --\(name)")
         }
         return arguments[index]
+    }
+
+    func parseOptionalBool(argument: BoolShellArgument, from arguments: [String], defaultValue: Bool) throws -> Bool {
+        guard let value = try parseOptionalArgumentValue(
+            name: argument.name,
+            arguments: arguments,
+            help: argument.help.value
+        ) else {
+            return defaultValue
+        }
+
+        return try Bool(value) ?!+ "Shell parse error: can not convert value: \"\(value)\" to Bool"
     }
 }
