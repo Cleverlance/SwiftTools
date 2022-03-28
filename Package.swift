@@ -3,7 +3,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "Tools",
+    name: "SwiftTools",
     platforms: [.macOS(.v11)],
     products: [
         .library(name: "SwiftTools", targets: ["SwiftTools"]),
