@@ -8,10 +8,10 @@
 import Foundation
 
 public struct Branch: Hashable {
-    let name: String
-    let majorVersion: UInt
-    let minorVersion: UInt
-    let patchVersion: UInt
+    public let name: String
+    public let majorVersion: UInt
+    public let minorVersion: UInt
+    public let patchVersion: UInt
 
     public init(name: String, majorVersion: UInt, minorVersion: UInt, patchVersion: UInt) {
         self.name = name
