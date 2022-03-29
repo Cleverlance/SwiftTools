@@ -8,30 +8,22 @@
 import Foundation
 import SwiftFormat
 
-public struct FormatSettings {
-    public let currentPath: String
-    public let path: String
-    public let configPath: String
-
-    public init(currentPath: String, path: String, configPath: String) {
-        self.currentPath = currentPath
-        self.path = path
-        self.configPath = configPath
-    }
-}
-
 public protocol FormatService {
-    func format(with settings: FormatSettings) throws
+    func format(path: String) throws
 }
 
 final class FormatServiceImpl: FormatService {
     private let printService: PrintService
+    private let localFileService: LocalFileService
+    private let configurationController: ConfigurationController
 
-    init(printService: PrintService) {
+    init(printService: PrintService, localFileService: LocalFileService, configurationController: ConfigurationController) {
         self.printService = printService
+        self.localFileService = localFileService
+        self.configurationController = configurationController
     }
 
-    func format(with settings: FormatSettings) throws {
+    func format(path: String) throws {
         CLI.print = { [weak self] text, type in
             switch type {
             case .error, .warning:
@@ -40,8 +32,9 @@ final class FormatServiceImpl: FormatService {
                 break
             }
         }
-        let currentPath = settings.currentPath
-        let result = CLI.run(in: currentPath, with: "\(settings.path) --config \(settings.configPath) --swiftversion 5")
+        let currentPath = localFileService.getCurrentPath()
+        let configurationFilePath = configurationController.getSwiftFormatConfigurationFilePath()
+        let result = CLI.run(in: currentPath, with: "\(path) --config \(configurationFilePath) --swiftversion 5")
 
         if result != .ok {
             throw ToolsError(description: "Formatting failed with exit code: \(result)")

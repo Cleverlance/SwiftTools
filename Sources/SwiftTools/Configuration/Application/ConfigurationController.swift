@@ -9,4 +9,5 @@ public protocol ConfigurationController {
     func getSlackUrl() -> String
     func getSlackMergeIconPath() -> String
     func getUpdatePath() -> String
+    func getSwiftFormatConfigurationFilePath() -> String
 }
