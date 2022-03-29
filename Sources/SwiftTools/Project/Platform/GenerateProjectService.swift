@@ -14,12 +14,12 @@ import XcodeGenKit
 import XcodeProj
 
 public protocol GenerateProjectService {
-    func generateProject(with path: String) throws
+    func generateProject(path: String) throws
 }
 
 final class GenerateProjectServiceImpl: GenerateProjectService {
     // Contents of GenerateCommand.swift + ProjectCommand.swift from XcodeGen
-    func generateProject(with path: String) throws {
+    func generateProject(path: String) throws {
         let projectSpecPath = Path(path)
         let projectRoot = Path.current
         let projectDirectory = projectSpecPath.parent()
