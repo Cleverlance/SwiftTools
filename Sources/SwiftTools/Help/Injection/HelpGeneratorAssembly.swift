@@ -8,7 +8,7 @@
 import Swinject
 import SwinjectAutoregistration
 
-public final class HelpCLIAssembly: Assembly {
+public final class HelpGeneratorAssembly: Assembly {
     public init() {}
 
     public func assemble(container: Container) {
