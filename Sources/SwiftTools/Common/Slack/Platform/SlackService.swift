@@ -21,7 +21,7 @@ public struct SlackPayload {
     }
 }
 
-protocol SlackService {
+public protocol SlackService {
     func print(payload: SlackPayload) throws
 }
 

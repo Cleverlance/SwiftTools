@@ -33,7 +33,7 @@ public struct NetworkFileResponse {
     }
 }
 
-protocol NetworkService {
+public protocol NetworkService {
     func execute(url: URL, method: NetworkServiceMethod, headers: [String: String], body: Data?) throws -> NetworkResponse
     func execute(url: URL) throws -> NetworkFileResponse
 }
