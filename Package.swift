@@ -25,5 +25,9 @@ let package = Package(
             .product(name: "XcodeGenKit", package: "XcodeGen"),
             "XcodeProj",
         ]),
+        .testTarget(
+            name: "SwiftToolsTests",
+            dependencies: ["SwiftTools"]
+        ),
     ]
 )

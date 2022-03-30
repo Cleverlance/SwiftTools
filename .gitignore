@@ -22,6 +22,7 @@ Icon
 /Build/
 DerivedData
 Package.resolved
+.build
 
 ## Various settings
 *.pbxuser
