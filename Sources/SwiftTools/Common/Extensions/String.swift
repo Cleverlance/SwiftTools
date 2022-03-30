@@ -15,4 +15,8 @@ public extension String {
     func inset() -> String {
         return "    " + self
     }
+
+    var utf8Data: Data {
+        return Data(utf8)
+    }
 }
