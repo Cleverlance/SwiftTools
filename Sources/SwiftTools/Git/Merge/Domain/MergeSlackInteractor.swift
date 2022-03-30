@@ -32,7 +32,7 @@ final class MergeSlackInteractorImpl: MergeSlackInteractor {
     }
 
     private func print(message: String, isSuccess: Bool) throws {
-        let payload = SlackPayload(message: message, username: "Merge", icon: configurationController.getSlackMergeIconPath(), isSuccess: isSuccess)
+        let payload = SlackPayload(message: message, username: "Merge", icon: configurationController.getSlackConfiguration().mergeIconPath, isSuccess: isSuccess)
         try slackService.print(payload: payload)
     }
 }

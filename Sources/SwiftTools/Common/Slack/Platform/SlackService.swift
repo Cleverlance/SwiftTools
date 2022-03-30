@@ -45,15 +45,15 @@ final class SlackServiceImpl: SlackService {
 
     private func makeArguments(message: String, username: String, icon: String?, isSuccess: Bool) -> [String] {
         let message = message.replacingOccurrences(of: "`", with: "\\`")
-        let url = configurationController.getSlackUrl()
+        let configuration = configurationController.getSlackConfiguration()
         return [
             "run",
             "slack",
             "message:\"\(message)\"",
             "username:\"\(username)\"",
-            "slack_url:\(url)",
+            "slack_url:\(configuration.url.absoluteString)",
             "default_payloads:[]",
-            "channel:\"#kb-ios-dev\"",
+            "channel:\"\(configuration.channel)\"",
             icon.map { "icon_url:\($0)" },
             "success:\(isSuccess ? "true" : "false")",
         ].compactMap { $0 }
