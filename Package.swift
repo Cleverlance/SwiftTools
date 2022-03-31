@@ -13,7 +13,7 @@ let package = Package(
         .package(url: "https://github.com/Swinject/SwinjectAutoregistration", .exact("2.8.1")),
         .package(url: "https://github.com/nicklockwood/SwiftFormat", .exact("0.49.4")),
         .package(url: "https://github.com/jakeheis/SwiftCLI", .exact("6.0.3")),
-        .package(url: "https://github.com/yonaskolb/XcodeGen.git", .exact("2.27.0")),
+        .package(url: "https://github.com/yonaskolb/XcodeGen.git", .exact("2.28.0")),
         .package(name: "XcodeProj", url: "https://github.com/tuist/xcodeproj.git", .exact("8.6.0")),
     ],
     targets: [
