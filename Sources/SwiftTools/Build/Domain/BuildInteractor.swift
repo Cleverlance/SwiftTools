@@ -1,0 +1,90 @@
+//
+//  File.swift
+//  
+//
+//  Created by Jan Halousek on 01.04.2022.
+//
+
+import Foundation
+
+public protocol BuildInteractor {
+    func build(with arguments: BuildArguments) throws
+    func test(with arguments: TestArguments) throws
+}
+
+final class BuildInteractorImpl: BuildInteractor {
+    private let shellService: ShellService
+    private let printService: PrintService
+
+    init(shellService: ShellService, printService: PrintService) {
+        self.shellService = shellService
+        self.printService = printService
+    }
+
+    func build(with arguments: BuildArguments) throws {
+        let arguments = try makeArguments(scheme: arguments.scheme, platform: arguments.platform, arguments: arguments.arguments)
+        try shellService.execute(arguments: arguments)
+    }
+
+    func test(with arguments: TestArguments) throws {
+        let arguments = try makeArguments(from: arguments)
+        try shellService.execute(arguments: arguments)
+    }
+
+    private func makeArguments(from arguments: TestArguments) throws -> [String] {
+        var additionalArguments = [String]()
+        if let testPlan = arguments.testPlan {
+            additionalArguments += ["-testPlan", testPlan]
+        }
+        if arguments.isCodeCoverageEnabled {
+            additionalArguments += ["-enableCodeCoverage", "YES"]
+        }
+        return try makeArguments(scheme: arguments.scheme, platform: arguments.platform, arguments: additionalArguments)
+    }
+
+    private func makeArguments(scheme: String, platform: Platform?, arguments: [String]) throws -> [String] {
+        var buildArguments = ["xcodebuild", "-scheme", scheme]
+        if let platform = platform {
+            let destination = try getDestination(for: platform)
+            buildArguments += ["-destination", destination]
+        }
+        return buildArguments + arguments + ["-quiet"]
+    }
+
+    private func getDestination(for platform: Platform) throws -> String {
+        let key = getKey(for: platform)
+        let id = try getDeviceId(for: key)
+        return getDestinationString(for: platform, with: id)
+    }
+
+    private func getDeviceId(for key: String) throws -> String {
+        let destinations = try shellService.executeWithResult(arguments: ["xcodebuild", "-scheme", "Individual", "-showdestinations", "-quiet"])
+        printService.printVerbose(destinations)
+        let components = destinations
+            .components(separatedBy: "\n")
+        let destination = try components.first(where: { $0.contains(key) }) ?!+ "no key"
+        let attributes = destination.split(separator: " ")
+        let idKeyValue = try attributes.first(where: { $0.starts(with: "id:") }) ?!+ "missing id"
+        let id = idKeyValue.dropFirst(3)
+        printService.printVerbose("Selecting device with id: \(id), for key: \(key)")
+        return String(id)
+    }
+
+    private func getKey(for platform: Platform) -> String {
+        switch platform {
+        case .iOS:
+            return "platform:iOS Simulator"
+        case .macOS:
+            return "variant:Mac Catalyst"
+        }
+    }
+
+    private func getDestinationString(for platform: Platform, with id: String) -> String {
+        switch platform {
+        case .iOS:
+            return "\"platform=iOS Simulator,id=\(id)\""
+        case .macOS:
+            return "\"platform=macOS,variant=Mac Catalyst,id=\(id)\""
+        }
+    }
+}
