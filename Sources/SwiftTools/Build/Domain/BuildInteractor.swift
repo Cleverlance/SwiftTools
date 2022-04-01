@@ -32,7 +32,7 @@ final class BuildInteractorImpl: BuildInteractor {
     }
 
     private func makeArguments(from arguments: TestArguments) throws -> [String] {
-        var additionalArguments = [String]()
+        var additionalArguments = ["test"]
         if let testPlan = arguments.testPlan {
             additionalArguments += ["-testPlan", testPlan]
         }
@@ -45,20 +45,20 @@ final class BuildInteractorImpl: BuildInteractor {
     private func makeArguments(scheme: String, platform: Platform?, arguments: [String]) throws -> [String] {
         var buildArguments = ["xcodebuild", "-scheme", scheme]
         if let platform = platform {
-            let destination = try getDestination(for: platform)
+            let destination = try getDestination(for: platform, scheme: scheme)
             buildArguments += ["-destination", destination]
         }
         return buildArguments + arguments + ["-quiet"]
     }
 
-    private func getDestination(for platform: Platform) throws -> String {
+    private func getDestination(for platform: Platform, scheme: String) throws -> String {
         let key = getKey(for: platform)
-        let id = try getDeviceId(for: key)
+        let id = try getDeviceId(for: key, scheme: scheme)
         return getDestinationString(for: platform, with: id)
     }
 
-    private func getDeviceId(for key: String) throws -> String {
-        let destinations = try shellService.executeWithResult(arguments: ["xcodebuild", "-scheme", "Individual", "-showdestinations", "-quiet"])
+    private func getDeviceId(for key: String, scheme: String) throws -> String {
+        let destinations = try shellService.executeWithResult(arguments: ["xcodebuild", "-scheme", scheme, "-showdestinations", "-quiet"])
         printService.printVerbose(destinations)
         let components = destinations
             .components(separatedBy: "\n")
