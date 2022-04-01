@@ -28,6 +28,7 @@ public enum SwiftToolsAssemblies {
             ShellArgumentsAssembly(),
             UpdateAssembly(),
             JsonSerializerAssembly(),
+            BuildAssembly(),
         ]
     }
 }
