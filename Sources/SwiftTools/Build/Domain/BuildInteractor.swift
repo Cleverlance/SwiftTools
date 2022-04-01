@@ -9,6 +9,7 @@ import Foundation
 
 public protocol BuildInteractor {
     func build(with arguments: BuildArguments) throws
+    func buildWithResult(with arguments: BuildArguments) throws -> String
     func test(with arguments: TestArguments) throws
 }
 
@@ -26,6 +27,11 @@ final class BuildInteractorImpl: BuildInteractor {
     func build(with arguments: BuildArguments) throws {
         let arguments = try makeArguments(scheme: arguments.scheme, platform: arguments.platform, arguments: arguments.arguments)
         try shellService.execute(arguments: arguments)
+    }
+
+    func buildWithResult(with arguments: BuildArguments) throws -> String {
+        let arguments = try makeArguments(scheme: arguments.scheme, platform: arguments.platform, arguments: arguments.arguments)
+        return try shellService.executeWithResult(arguments: arguments)
     }
 
     func test(with arguments: TestArguments) throws {
