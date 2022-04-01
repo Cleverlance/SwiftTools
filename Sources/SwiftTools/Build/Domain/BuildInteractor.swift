@@ -15,10 +15,12 @@ public protocol BuildInteractor {
 final class BuildInteractorImpl: BuildInteractor {
     private let shellService: ShellService
     private let printService: PrintService
+    private let verboseController: VerboseController
 
-    init(shellService: ShellService, printService: PrintService) {
+    init(shellService: ShellService, printService: PrintService, verboseController: VerboseController) {
         self.shellService = shellService
         self.printService = printService
+        self.verboseController = verboseController
     }
 
     func build(with arguments: BuildArguments) throws {
@@ -48,7 +50,10 @@ final class BuildInteractorImpl: BuildInteractor {
             let destination = try getDestination(for: platform, scheme: scheme)
             buildArguments += ["-destination", destination]
         }
-        return buildArguments + arguments + ["-quiet"]
+        if !verboseController.isVerbose() {
+            buildArguments += ["-quiet"]
+        }
+        return buildArguments + arguments
     }
 
     private func getDestination(for platform: Platform, scheme: String) throws -> String {
