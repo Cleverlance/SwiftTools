@@ -16,6 +16,7 @@ public protocol LocalFileService {
     func createDirectory(at path: String) throws
     func write(data: Data, to path: String) throws
     func getListOfItem(at path: String) throws -> [String]
+    func readFile(at path: String) throws -> String
 }
 
 final class LocalFileServiceImpl: LocalFileService {
@@ -52,5 +53,11 @@ final class LocalFileServiceImpl: LocalFileService {
 
     func getListOfItem(at path: String) throws -> [String] {
         return try fileManager.contentsOfDirectory(atPath: path)
+    }
+
+    func readFile(at path: String) throws -> String {
+        let url = URL(fileURLWithPath: path)
+        let data = try Data(contentsOf: url) ?!+ "Invalid url"
+        return try String(data: data, encoding: .utf8) ?!+ "Invalid encoding"
     }
 }

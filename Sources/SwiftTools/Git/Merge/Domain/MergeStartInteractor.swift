@@ -40,7 +40,8 @@ final class MergeStartInteractorImpl: MergeStartInteractor {
                 return
             }
             try processInteractor.mergeLocally(source: sourceBranch, sourceHash: sourceHash, destination: destination)
-            try updateInteractor.execute()
+            try updateInteractor.updateXcodeSelect()
+            try updateInteractor.updateTools()
         } catch {
             try slackInteractor.print(error: error)
             throw error

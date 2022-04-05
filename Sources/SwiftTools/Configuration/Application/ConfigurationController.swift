@@ -22,5 +22,6 @@ public struct SlackConfiguration {
 public protocol ConfigurationController {
     func getSlackConfiguration() -> SlackConfiguration
     func getUpdatePath() -> String
+    func getXcodeConfigurationPath() -> String
     func getSwiftFormatConfigurationFilePath() -> String
 }
