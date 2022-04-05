@@ -24,7 +24,6 @@ public enum SwiftToolsAssemblies {
             MergeAssembly(),
             SynchronizeLatestReleaseAssembly(),
             HelpGeneratorAssembly(),
-            ProjectAssembly(),
             ShellArgumentsAssembly(),
             UpdateAssembly(),
             JsonSerializerAssembly(),
