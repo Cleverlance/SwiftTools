@@ -21,6 +21,7 @@ public protocol GitService {
     func commit(with message: String) throws
     func getStatus(with arguments: [String]) throws -> String
     func rebase(onto branchName: String) throws
+    func ammend() throws
 }
 
 final class GitServiceImpl: GitService {
@@ -89,5 +90,9 @@ final class GitServiceImpl: GitService {
 
     func rebase(onto branchName: String) throws {
         try run(commands: ["rebase", branchName])
+    }
+
+    func ammend() throws {
+        try run(commands: ["commit", "--amend", "--no-edit"])
     }
 }
