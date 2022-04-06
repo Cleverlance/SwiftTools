@@ -8,8 +8,6 @@
 import Foundation
 
 public protocol GitService {
-    func run(commands: [String]) throws
-    func runWithResult(commands: [String]) throws -> String
     func resetRepository() throws
     func getRemoteBranches() throws -> Set<String>
     func pull() throws
@@ -23,6 +21,11 @@ public protocol GitService {
     func rebase(onto branchName: String) throws
     func amend() throws
     func addAll() throws
+    func fetchOrigin() throws
+    func getCurrentHash() throws -> String
+    func getLatestHash(of branchName: String) throws -> String
+    func resetHard() throws
+    func getCurrentBranchName() throws -> String
 }
 
 final class GitServiceImpl: GitService {
@@ -32,11 +35,11 @@ final class GitServiceImpl: GitService {
         self.shellService = shellService
     }
 
-    func run(commands: [String]) throws {
+    private func run(commands: [String]) throws {
         try shellService.execute(arguments: ["git"] + commands)
     }
 
-    func runWithResult(commands: [String]) throws -> String {
+    private func runWithResult(commands: [String]) throws -> String {
         return try shellService.executeWithResult(arguments: ["git"] + commands)
     }
 
@@ -99,5 +102,25 @@ final class GitServiceImpl: GitService {
 
     func addAll() throws {
         try run(commands: ["add", "--all"])
+    }
+
+    func fetchOrigin() throws {
+        try run(commands: ["fetch", "origin"])
+    }
+
+    func getCurrentHash() throws -> String {
+        return try runWithResult(commands: ["show", "-s", "--format=%H"])
+    }
+
+    func getLatestHash(of branchName: String) throws -> String {
+        return try runWithResult(commands: ["rev-parse", branchName])
+    }
+
+    func resetHard() throws {
+        try run(commands: ["reset", "--hard", "HEAD"])
+    }
+
+    func getCurrentBranchName() throws -> String {
+        return try runWithResult(commands: ["branch", "--show-current"])
     }
 }
