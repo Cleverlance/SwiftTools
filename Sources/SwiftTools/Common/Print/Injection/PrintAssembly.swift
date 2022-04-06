@@ -13,6 +13,6 @@ public final class PrintAssembly: Assembly {
 
     public func assemble(container: Container) {
         container.autoregister(PrintService.self, initializer: PrintServiceImpl.init)
-        container.autoregister(VerboseController.self, initializer: VerboseControllerImpl.init)
+        container.autoregister(VerboseController.self, initializer: VerboseControllerImpl.init).inObjectScope(.container)
     }
 }
