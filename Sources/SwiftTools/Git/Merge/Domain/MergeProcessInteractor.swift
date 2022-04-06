@@ -29,7 +29,7 @@ final class MergeProcessInteractorImpl: MergeProcessInteractor {
     }
 
     func mergeLocally(source: String, sourceHash: String, destination: String) throws {
-        try gitService.run(commands: ["reset", "--hard", "HEAD"])
+        try gitService.resetHard()
         try gitService.updateSubmodule()
         try gitService.merge(from: sourceHash)
         try gitService.commit(with: "Automatic merge from \(source) to \(destination)")
