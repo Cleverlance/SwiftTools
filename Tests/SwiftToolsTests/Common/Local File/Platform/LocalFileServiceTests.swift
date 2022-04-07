@@ -76,7 +76,7 @@ class LocalFileServiceTests: XCTestCase {
         let list = try sut.getListOfItems(at: testFolder)
 
         XCTAssertEqual(list.count, 2)
-        XCTAssertEqual(list[safe: 0]?.hasSuffix(testFolder.replacingOccurrences(of: "~/", with: "") + "copy.txt"), true)
-        XCTAssertEqual(list[safe: 1]?.hasSuffix(testFolder.replacingOccurrences(of: "~/", with: "") + "data.txt"), true)
+        XCTAssertEqual(list[safe: 0], "copy.txt")
+        XCTAssertEqual(list[safe: 1], "data.txt")
     }
 }
