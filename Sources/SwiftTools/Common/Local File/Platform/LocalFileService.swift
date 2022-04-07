@@ -7,16 +7,18 @@
 
 import Foundation
 
+public typealias Path = String
+
 public protocol LocalFileService {
     func getCurrentPath() -> String
     func getLibraryPath() throws -> String
-    func removeItem(at path: String) throws
-    func isFileExists(at path: String) -> Bool
-    func copyItem(atPath source: String, toPath destination: String) throws
-    func createDirectory(at path: String) throws
-    func write(data: Data, to path: String) throws
-    func getListOfItems(at path: String) throws -> [String]
-    func readFile(at path: String) throws -> String
+    func removeItem(at path: Path) throws
+    func isItemPresent(at path: Path) -> Bool
+    func copyItem(atPath source: Path, toPath destination: Path) throws
+    func createDirectory(at path: Path) throws
+    func write(data: Data, to path: Path) throws
+    func getListOfItems(at path: Path) throws -> [Path]
+    func readFile(at path: Path) throws -> String
 }
 
 final class LocalFileServiceImpl: LocalFileService {
@@ -30,44 +32,44 @@ final class LocalFileServiceImpl: LocalFileService {
         return try fileManager.urls(for: .libraryDirectory, in: .userDomainMask).first?.path ?!+ "Library url not found"
     }
 
-    func removeItem(at path: String) throws {
+    func removeItem(at path: Path) throws {
         let url = makeNormalizedUrl(path: path)
         try fileManager.removeItem(at: url)
     }
 
-    func isFileExists(at path: String) -> Bool {
+    func isItemPresent(at path: Path) -> Bool {
         let url = makeNormalizedUrl(path: path)
         return fileManager.fileExists(atPath: url.path)
     }
 
-    func copyItem(atPath source: String, toPath destination: String) throws {
+    func copyItem(atPath source: Path, toPath destination: Path) throws {
         let source = makeNormalizedUrl(path: source)
         let destination = makeNormalizedUrl(path: destination)
         try fileManager.copyItem(at: source, to: destination)
     }
 
-    func createDirectory(at path: String) throws {
+    func createDirectory(at path: Path) throws {
         let url = makeNormalizedUrl(path: path)
         try fileManager.createDirectory(at: url, withIntermediateDirectories: true)
     }
 
-    func write(data: Data, to path: String) throws {
+    func write(data: Data, to path: Path) throws {
         let url = makeNormalizedUrl(path: path)
         try data.write(to: url)
     }
 
-    func getListOfItems(at path: String) throws -> [String] {
+    func getListOfItems(at path: Path) throws -> [String] {
         let url = makeNormalizedUrl(path: path)
         return try fileManager.contentsOfDirectory(at: url, includingPropertiesForKeys: nil).map(\.path)
     }
 
-    func readFile(at path: String) throws -> String {
+    func readFile(at path: Path) throws -> String {
         let url = makeNormalizedUrl(path: path)
         let data = try Data(contentsOf: url) ?!+ "Invalid url"
         return try String(data: data, encoding: .utf8) ?!+ "Invalid encoding"
     }
 
-    private func makeNormalizedUrl(path: String) -> URL {
+    private func makeNormalizedUrl(path: Path) -> URL {
         guard path != "~" else {
             return FileManager.default.homeDirectoryForCurrentUser
         }

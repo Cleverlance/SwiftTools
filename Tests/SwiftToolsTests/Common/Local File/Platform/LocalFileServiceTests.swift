@@ -38,7 +38,7 @@ class LocalFileServiceTests: XCTestCase {
     }
 
     func test_whenIsFileExists_thenReturnFalse() {
-        let isExists = sut.isFileExists(at: testFolder + "a/b/c/data.txt")
+        let isExists = sut.isItemPresent(at: testFolder + "a/b/c/data.txt")
 
         XCTAssertEqual(isExists, false)
     }
@@ -47,7 +47,7 @@ class LocalFileServiceTests: XCTestCase {
         try sut.createDirectory(at: testFolder + "a/b/c/")
         try sut.write(data: "data".utf8Data, to: testFolder + "a/b/c/data.txt")
 
-        let isExists = sut.isFileExists(at: testFolder + "a/b/c/data.txt")
+        let isExists = sut.isItemPresent(at: testFolder + "a/b/c/data.txt")
 
         XCTAssertEqual(isExists, true)
     }
@@ -56,7 +56,7 @@ class LocalFileServiceTests: XCTestCase {
         try sut.createDirectory(at: testFolder + "a/b/c/")
         try sut.removeItem(at: testFolder + "a")
 
-        let isExists = sut.isFileExists(at: testFolder + "a/b/c/data.txt")
+        let isExists = sut.isItemPresent(at: testFolder + "a/b/c/data.txt")
 
         XCTAssertEqual(isExists, false)
     }
