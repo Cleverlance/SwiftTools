@@ -22,7 +22,7 @@ final class CleanupInteractorImpl: CleanupInteractor {
 
     func execute(with paths: [String]) throws {
         for path in paths {
-            if fileService.fileExists(at: path) {
+            if fileService.isItemPresent(at: path) {
                 try fileService.removeItem(at: path)
             }
         }
