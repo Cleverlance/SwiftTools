@@ -60,7 +60,7 @@ final class LocalFileServiceImpl: LocalFileService {
 
     func getListOfItems(at path: Path) throws -> [String] {
         let url = makeNormalizedUrl(path: path)
-        return try fileManager.contentsOfDirectory(at: url, includingPropertiesForKeys: nil).map(\.path)
+        return try fileManager.contentsOfDirectory(at: url, includingPropertiesForKeys: nil).map(\.lastPathComponent)
     }
 
     func readFile(at path: Path) throws -> String {
