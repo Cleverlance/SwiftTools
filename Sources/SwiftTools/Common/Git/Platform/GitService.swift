@@ -13,6 +13,7 @@ public protocol GitService {
     func pull() throws
     func push(to branchName: String) throws
     func forcePush(to branchName: String) throws
+    func forcePushWithLease(to branchName: String) throws
     func checkout(_ identifier: String) throws
     func updateSubmodule() throws
     func merge(from sourceHash: String) throws
@@ -70,6 +71,10 @@ final class GitServiceImpl: GitService {
 
     func forcePush(to branchName: String) throws {
         try run(commands: ["push", "--force", "origin", branchName])
+    }
+
+    func forcePushWithLease(to branchName: String) throws {
+        try run(commands: ["push", "--force-with-lease", "origin", branchName])
     }
 
     func checkout(_ identifier: String) throws {
