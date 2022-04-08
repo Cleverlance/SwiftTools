@@ -26,7 +26,7 @@ public protocol GitService {
     func getCurrentHash() throws -> String
     func getLatestHash(of branchName: String) throws -> String
     func resetHard() throws
-    func getCurrentBranchName() throws -> String
+    func pushTag(_ tag: String) throws
 }
 
 final class GitServiceImpl: GitService {
@@ -125,7 +125,8 @@ final class GitServiceImpl: GitService {
         try run(commands: ["reset", "--hard", "HEAD"])
     }
 
-    func getCurrentBranchName() throws -> String {
-        return try runWithResult(commands: ["branch", "--show-current"])
+    func pushTag(_ tag: String) throws {
+        try run(commands: ["tag", tag])
+        try run(commands: ["push", "origin", tag])
     }
 }
