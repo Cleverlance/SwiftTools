@@ -15,16 +15,17 @@ public protocol MergeSlackInteractor {
 final class MergeSlackInteractorImpl: MergeSlackInteractor {
     private let slackService: SlackService
     private let configurationController: ConfigurationController
+    private let errorConverter: SlackErrorConverter
 
-    init(slackService: SlackService, configurationController: ConfigurationController) {
+    init(slackService: SlackService, configurationController: ConfigurationController, errorConverter: SlackErrorConverter) {
         self.slackService = slackService
         self.configurationController = configurationController
+        self.errorConverter = errorConverter
     }
 
     func print(error: Error) throws {
-        let message = (error as? ToolsError)?.description ?? error.localizedDescription
-        let cleanedMessage = message.replacingOccurrences(of: "\"", with: "'")
-        try print(message: "Merge failed with message: ```\(cleanedMessage)```", isSuccess: false)
+        let message = errorConverter.makeMessage(from: error)
+        try print(message: "Merge failed with message: ```\(message)```", isSuccess: false)
     }
 
     func print(message: String) throws {
