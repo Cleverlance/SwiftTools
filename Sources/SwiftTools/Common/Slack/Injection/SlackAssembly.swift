@@ -13,5 +13,6 @@ public final class SlackAssembly: Assembly {
 
     public func assemble(container: Container) {
         container.autoregister(SlackService.self, initializer: SlackServiceImpl.init)
+        container.autoregister(SlackErrorConverter.self, initializer: SlackErrorConverterImpl.init)
     }
 }
