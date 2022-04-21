@@ -24,6 +24,7 @@ public protocol GitService {
     func addAll() throws
     func fetchOrigin() throws
     func getCurrentHash() throws -> String
+    func getCurrentMessage() throws -> String
     func getLatestHash(of branchName: String) throws -> String
     func resetHard() throws
     func pushTag(_ tag: String) throws
@@ -115,6 +116,10 @@ final class GitServiceImpl: GitService {
 
     func getCurrentHash() throws -> String {
         return try runWithResult(commands: ["show", "-s", "--format=%H"])
+    }
+
+    func getCurrentMessage() throws -> String {
+        return try runWithResult(commands: ["show", "-s", "--format=%s"])
     }
 
     func getLatestHash(of branchName: String) throws -> String {
