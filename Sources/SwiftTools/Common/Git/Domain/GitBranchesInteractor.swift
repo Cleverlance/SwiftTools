@@ -27,6 +27,8 @@ public protocol GitBranchesInteractor {
 
 final class GitBranchesInteractorImpl: GitBranchesInteractor {
     private let gitService: GitService
+    private let developName = "/develop"
+    private let releaseName = "/release"
 
     init(gitService: GitService) {
         self.gitService = gitService
@@ -40,7 +42,7 @@ final class GitBranchesInteractorImpl: GitBranchesInteractor {
 
     private func isReleaseBranch(branch: Branch) -> Bool {
         let isDevelopmentBranch = branch.name.split(separator: "/").count == 2
-        return isDevelopmentBranch && (branch.name.hasSuffix("/develop") || branch.name.hasSuffix("/release"))
+        return isDevelopmentBranch && (branch.name.hasSuffix(developName) || branch.name.hasSuffix(releaseName))
     }
 
     private func makeBranch(from string: String) -> Branch? {
@@ -67,8 +69,10 @@ final class GitBranchesInteractorImpl: GitBranchesInteractor {
             return firstBranch.majorVersion < secondBranch.majorVersion
         } else if firstBranch.minorVersion != secondBranch.minorVersion {
             return firstBranch.minorVersion < secondBranch.minorVersion
-        } else {
+        } else if firstBranch.patchVersion != secondBranch.patchVersion {
             return firstBranch.patchVersion < secondBranch.patchVersion
+        } else {
+            return !firstBranch.name.hasSuffix(releaseName)
         }
     }
 }
