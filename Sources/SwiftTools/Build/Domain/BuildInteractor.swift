@@ -79,7 +79,7 @@ final class BuildInteractorImpl: BuildInteractor {
         printService.printVerbose(destinations)
         let components = destinations
             .components(separatedBy: "\n")
-        let destination = try components.first(where: { $0.contains(key) }) ?!+ "no key"
+        let destination = try components.first(where: { $0.contains(key) && $0.contains(" OS:") }) ?!+ "no key"
         let attributes = destination.split(separator: " ")
         let idKeyValue = try attributes.first(where: { $0.starts(with: "id:") }) ?!+ "missing id"
         let id = idKeyValue.dropFirst(3)
