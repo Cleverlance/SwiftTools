@@ -69,30 +69,39 @@ final class BuildInteractorImpl: BuildInteractor {
     }
 
     private func getDestination(for platform: Platform, scheme: String) throws -> String {
-        let key = getKey(for: platform)
-        let id = try getDeviceId(for: key, scheme: scheme)
+        let keys = makeSearchedKeys(for: platform)
+        let id = try getDeviceId(for: keys, scheme: scheme)
         return getDestinationString(for: platform, with: id)
     }
 
-    private func getDeviceId(for key: String, scheme: String) throws -> String {
+    private func getDeviceId(for keys: [String], scheme: String) throws -> String {
         let destinations = try shellService.executeWithResult(arguments: ["xcodebuild", "-scheme", scheme, "-showdestinations", "-quiet"])
         printService.printVerbose(destinations)
         let components = destinations
             .components(separatedBy: "\n")
-        let destination = try components.first(where: { $0.contains(key) && $0.contains(" OS:") }) ?!+ "no key"
+        let destination = try components.first(where: { isRowValid(keys: keys, row: $0) }) ?!+ "no key"
         let attributes = destination.split(separator: " ")
         let idKeyValue = try attributes.first(where: { $0.starts(with: "id:") }) ?!+ "missing id"
-        let id = idKeyValue.dropFirst(3)
-        printService.printVerbose("Selecting device with id: \(id), for key: \(key)")
+        var id = idKeyValue.dropFirst(3)
+
+        if idKeyValue.last == "," {
+            id = id.dropLast(1)
+        }
+
+        printService.printVerbose("Selecting device with id: \(id), for keys: \(keys)")
         return String(id)
     }
 
-    private func getKey(for platform: Platform) -> String {
+    private func isRowValid(keys: [String], row: String) -> Bool {
+        return keys.reduce(true, { $0 && row.contains($1) })
+    }
+
+    private func makeSearchedKeys(for platform: Platform) -> [String] {
         switch platform {
         case .iOS:
-            return "platform:iOS Simulator"
+            return ["platform:iOS Simulator", " OS:"]
         case .macOS:
-            return "variant:Mac Catalyst"
+            return ["variant:Mac Catalyst"]
         }
     }
 
