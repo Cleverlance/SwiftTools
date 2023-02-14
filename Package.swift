@@ -11,7 +11,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/Swinject/Swinject.git", .exact("2.8.1")),
         .package(url: "https://github.com/Swinject/SwinjectAutoregistration", .exact("2.8.1")),
-        .package(url: "https://github.com/nicklockwood/SwiftFormat", .exact("0.49.4")),
+        .package(url: "https://github.com/nicklockwood/SwiftFormat", .exact("0.50.8")),
         .package(url: "https://github.com/jakeheis/SwiftCLI", .exact("6.0.3")),
     ],
     targets: [
