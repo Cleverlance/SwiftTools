@@ -16,11 +16,18 @@ final class FormatServiceImpl: FormatService {
     private let printService: PrintService
     private let localFileService: LocalFileService
     private let configurationController: ConfigurationController
+    private let verboseController: VerboseController
 
-    init(printService: PrintService, localFileService: LocalFileService, configurationController: ConfigurationController) {
+    init(
+        printService: PrintService,
+        localFileService: LocalFileService,
+        configurationController: ConfigurationController,
+        verboseController: VerboseController
+    ) {
         self.printService = printService
         self.localFileService = localFileService
         self.configurationController = configurationController
+        self.verboseController = verboseController
     }
 
     func format(path: String) throws {
@@ -29,12 +36,13 @@ final class FormatServiceImpl: FormatService {
             case .error, .warning:
                 self?.printService.printText("\(type): \(text)")
             case .info, .success, .content, .raw:
-                break
+                self?.printService.printVerbose("\(type): \(text)")
             }
         }
         let currentPath = localFileService.getCurrentPath()
         let configurationFilePath = configurationController.getSwiftFormatConfigurationFilePath()
-        let result = CLI.run(in: currentPath, with: "\(path) --config \(configurationFilePath) --swiftversion 5")
+        let verboseText = verboseController.isVerbose() ? " --verbose" : ""
+        let result = CLI.run(in: currentPath, with: "\(path) --config \(configurationFilePath)\(verboseText)")
 
         if result != .ok {
             throw ToolsError(description: "Formatting failed with exit code: \(result)")
