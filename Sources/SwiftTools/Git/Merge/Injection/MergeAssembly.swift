@@ -17,6 +17,5 @@ public final class MergeAssembly: Assembly {
         container.autoregister(MergeProcessInteractor.self, initializer: MergeProcessInteractorImpl.init)
         container.autoregister(MergeDestinationBranchInteractor.self, initializer: MergeDestinationBranchInteractorImpl.init)
         container.autoregister(MergeFinishInteractor.self, initializer: MergeFinishInteractorImpl.init)
-        container.autoregister(MergeSlackInteractor.self, initializer: MergeSlackInteractorImpl.init)
     }
 }

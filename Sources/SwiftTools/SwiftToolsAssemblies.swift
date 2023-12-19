@@ -19,7 +19,6 @@ public enum SwiftToolsAssemblies {
             NetworkAssembly(),
             PrintAssembly(),
             ShellAssembly(),
-            SlackAssembly(),
             FormatAssembly(),
             MergeAssembly(),
             SynchronizeLatestReleaseAssembly(),

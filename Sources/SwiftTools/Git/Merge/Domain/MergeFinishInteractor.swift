@@ -14,14 +14,17 @@ public protocol MergeFinishInteractor {
 final class MergeFinishInteractorImpl: MergeFinishInteractor {
     private let statusInteractor: MergeStatusInteractor
     private let processInteractor: MergeProcessInteractor
-    private let slackInteractor: MergeSlackInteractor
     private let printService: PrintService
     private let destinationBranchInteractor: MergeDestinationBranchInteractor
 
-    init(statusInteractor: MergeStatusInteractor, processInteractor: MergeProcessInteractor, slackInteractor: MergeSlackInteractor, printService: PrintService, destinationBranchInteractor: MergeDestinationBranchInteractor) {
+    init(
+        statusInteractor: MergeStatusInteractor,
+        processInteractor: MergeProcessInteractor,
+        printService: PrintService,
+        destinationBranchInteractor: MergeDestinationBranchInteractor
+    ) {
         self.statusInteractor = statusInteractor
         self.processInteractor = processInteractor
-        self.slackInteractor = slackInteractor
         self.printService = printService
         self.destinationBranchInteractor = destinationBranchInteractor
     }
@@ -38,9 +41,7 @@ final class MergeFinishInteractorImpl: MergeFinishInteractor {
                 return
             }
             try processInteractor.testAndPush(destination: destination)
-            try slackInteractor.print(message: "Branch `\(sourceBranch)` is merged to `\(destination)`.")
         } catch {
-            try slackInteractor.print(error: error)
             throw error
         }
     }
