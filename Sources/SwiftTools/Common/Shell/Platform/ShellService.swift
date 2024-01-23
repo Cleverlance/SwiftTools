@@ -36,6 +36,7 @@ final class ShellServiceImpl: ShellService {
 
         let command = arguments.joined(separator: " ")
         let task = Task(executable: "/bin/bash", arguments: ["-c", command], stdout: outputStream, stderr: error)
+        printService.printVerbose("shell command: '\(command)'") 
         let exitCode = task.runSync()
 
         let outputString = output.readAll()
