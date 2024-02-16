@@ -25,7 +25,7 @@ final class FastlaneServiceImpl: FastlaneService {
             isInstallExecuted = true
         }
 
-        let fastlaneArguments = ["bundle", "exec", "fastlane"] + arguments
+        let fastlaneArguments = ["export", "FASTLANE_DISABLE_COLORS=1", "&&", "bundle", "exec", "fastlane"] + arguments
         try shellService.execute(arguments: fastlaneArguments)
     }
 }
