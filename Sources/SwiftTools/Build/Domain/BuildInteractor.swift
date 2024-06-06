@@ -26,12 +26,22 @@ final class BuildInteractorImpl: BuildInteractor {
     }
 
     func build(with arguments: BuildArguments) throws {
-        let arguments = try makeArguments(scheme: arguments.scheme, platform: arguments.platform, arguments: arguments.arguments)
+        let arguments = try makeArguments(
+            scheme: arguments.scheme,
+            platform: arguments.platform,
+            arguments: arguments.arguments,
+            isQuiet: !verboseController.isVerbose()
+        )
         try shellService.execute(arguments: arguments)
     }
 
     func getBuildSettings(with arguments: BuildArguments) throws -> String {
-        let arguments = try makeArguments(scheme: arguments.scheme, platform: arguments.platform, arguments: arguments.arguments + ["-showBuildSettings"])
+        let arguments = try makeArguments(
+            scheme: arguments.scheme,
+            platform: arguments.platform,
+            arguments: arguments.arguments + ["-showBuildSettings"],
+            isQuiet: !verboseController.isVerbose()
+        )
         return try shellService.executeWithResult(arguments: arguments)
     }
 
@@ -53,16 +63,21 @@ final class BuildInteractorImpl: BuildInteractor {
         if arguments.isCodeCoverageEnabled {
             additionalArguments += ["-enableCodeCoverage", "YES"]
         }
-        return try makeArguments(scheme: arguments.scheme, platform: arguments.platform, arguments: additionalArguments)
+        return try makeArguments(
+            scheme: arguments.scheme,
+            platform: arguments.platform,
+            arguments: additionalArguments,
+            isQuiet: arguments.isQuiet
+        )
     }
 
-    private func makeArguments(scheme: String, platform: Platform?, arguments: [String]) throws -> [String] {
+    private func makeArguments(scheme: String, platform: Platform?, arguments: [String], isQuiet: Bool) throws -> [String] {
         var buildArguments = ["xcodebuild", "-scheme", scheme]
         if let platform = platform {
             let destination = try getDestination(for: platform, scheme: scheme)
             buildArguments += ["-destination", destination]
         }
-        if !verboseController.isVerbose() {
+        if isQuiet {
             buildArguments += ["-quiet"]
         }
         return buildArguments + arguments
