@@ -63,6 +63,9 @@ final class BuildInteractorImpl: BuildInteractor {
         if arguments.isCodeCoverageEnabled {
             additionalArguments += ["-enableCodeCoverage", "YES"]
         }
+        if arguments.skipMacroValidation {
+            additionalArguments += ["-skipMacroValidation"]
+        }
         return try makeArguments(
             scheme: arguments.scheme,
             platform: arguments.platform,
