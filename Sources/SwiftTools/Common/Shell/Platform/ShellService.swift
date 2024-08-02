@@ -6,10 +6,12 @@
 //
 
 import SwiftCLI
+import XcbeautifyLib
 
 public protocol ShellService {
     func execute(arguments: [String]) throws
     func executeWithResult(arguments: [String]) throws -> String
+    func executeWithXCBeautify(arguments: [String]) throws
 }
 
 final class ShellServiceImpl: ShellService {
@@ -56,6 +58,35 @@ final class ShellServiceImpl: ShellService {
             return SplitStream(streams: [captureStream, WriteStream.stdout])
         } else {
             return captureStream
+        }
+    }
+
+    func executeWithXCBeautify(arguments: [String]) throws {
+        let printStream = WriteStream.stdout
+        let parser = XcbeautifyLib.Parser(
+            colored: true,
+            renderer: .terminal,
+            preserveUnbeautifiedLines: true,
+            additionalLines: { nil }
+        )
+        let outputStream = makeBeautifyStream(outputStream: printStream, parser: parser)
+
+        let command = arguments.joined(separator: " ")
+        let task = Task(executable: "/bin/bash", arguments: ["-c", command], stdout: outputStream)
+        let exitCode = task.runSync()
+
+        guard exitCode == 0 else {
+            throw ToolsError(description: "shell command: '\(command)' failed with error")
+        }
+    }
+
+    private func makeBeautifyStream(outputStream: WritableStream, parser: XcbeautifyLib.Parser) -> ProcessingStream {
+        return LineStream { line in
+            if let formatted = parser.parse(line: line) {
+                outputStream.write(formatted)
+            } else {
+                outputStream.write(line)
+            }
         }
     }
 }

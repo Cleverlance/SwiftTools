@@ -47,7 +47,7 @@ final class BuildInteractorImpl: BuildInteractor {
 
     func test(with arguments: TestArguments) throws {
         let arguments = try makeArguments(from: arguments)
-        try shellService.execute(arguments: arguments)
+        try shellService.executeWithXCBeautify(arguments: arguments)
     }
 
     func testWithLog(with arguments: TestArguments) throws -> String {

@@ -62,8 +62,8 @@ final class BuildInteractorTests: XCTestCase {
 
         try sut.test(with: argumetns)
 
-        XCTAssertEqual(shellServiceSpy.execute.count, 1)
-        XCTAssertEqual(shellServiceSpy.execute.last?.arguments[safe: 4], "\"platform=iOS Simulator,id=40164398-DEA8-4D73-8813-CF7B2AC49090\"")
+        XCTAssertEqual(shellServiceSpy.executeWithXCBeautify.count, 1)
+        XCTAssertEqual(shellServiceSpy.executeWithXCBeautify.last?.arguments[safe: 4], "\"platform=iOS Simulator,id=40164398-DEA8-4D73-8813-CF7B2AC49090\"")
     }
 
     func test_givenBuildDestinationsAndmacOSPlatform_whenTest_thenParseCorrectDestination() throws {
@@ -71,17 +71,12 @@ final class BuildInteractorTests: XCTestCase {
 
         try sut.test(with: argumetns)
 
-        XCTAssertEqual(shellServiceSpy.execute.count, 1)
-        XCTAssertEqual(shellServiceSpy.execute.last?.arguments[safe: 4], "\"platform=macOS,variant=Mac Catalyst,id=B717F26A-6C7A-5DE6-A1D0-9D0374071FD0\"")
+        XCTAssertEqual(shellServiceSpy.executeWithXCBeautify.count, 1)
+        XCTAssertEqual(shellServiceSpy.executeWithXCBeautify.last?.arguments[safe: 4], "\"platform=macOS,variant=Mac Catalyst,id=B717F26A-6C7A-5DE6-A1D0-9D0374071FD0\"")
     }
 }
 
 final class ShellServiceSpy: ShellService {
-    enum SpyError: Error {
-        case spyError
-    }
-    typealias ThrowBlock = () throws -> Void
-
     struct Execute {
         let arguments: [String]
     }
@@ -90,11 +85,17 @@ final class ShellServiceSpy: ShellService {
         let arguments: [String]
     }
 
-    var execute = [Execute]()
-    var executeThrowBlock: ThrowBlock?
-    var executeWithResult = [ExecuteWithResult]()
-    var executeWithResultThrowBlock: ThrowBlock?
+    struct ExecuteWithXCBeautify {
+        let arguments: [String]
+    }
+
+    var executeThrowBlock: (() throws -> Void)?
+    var executeWithResultThrowBlock: (() throws -> Void)?
     var executeWithResultReturn: String
+    var executeWithXCBeautifyThrowBlock: (() throws -> Void)?
+    var execute = [Execute]()
+    var executeWithResult = [ExecuteWithResult]()
+    var executeWithXCBeautify = [ExecuteWithXCBeautify]()
 
     init(executeWithResultReturn: String) {
         self.executeWithResultReturn = executeWithResultReturn
@@ -111,6 +112,12 @@ final class ShellServiceSpy: ShellService {
         executeWithResult.append(item)
         try executeWithResultThrowBlock?()
         return executeWithResultReturn
+    }
+
+    func executeWithXCBeautify(arguments: [String]) throws {
+        let item = ExecuteWithXCBeautify(arguments: arguments)
+        executeWithXCBeautify.append(item)
+        try executeWithXCBeautifyThrowBlock?()
     }
 }
 
