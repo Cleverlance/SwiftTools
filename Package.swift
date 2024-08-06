@@ -12,12 +12,14 @@ let package = Package(
         .package(url: "https://github.com/Swinject/Swinject.git", from: "2.8.1"),
         .package(url: "https://github.com/Swinject/SwinjectAutoregistration", from: "2.8.1"),
         .package(url: "https://github.com/jakeheis/SwiftCLI", exact: "6.0.3"),
+        .package(url: "https://github.com/raptorxcz/xcbeautify", revision: "1bd38b6a64bb447c264fbdfc1b453bf8065b8ec6"),
     ],
     targets: [
         .target(name: "SwiftTools", dependencies: [
             "Swinject",
             "SwinjectAutoregistration",
             "SwiftCLI",
+            .product(name: "XcbeautifyLib", package: "xcbeautify"),
         ]),
         .testTarget(
             name: "SwiftToolsTests",
