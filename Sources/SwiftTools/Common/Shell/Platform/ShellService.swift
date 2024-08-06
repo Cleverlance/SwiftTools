@@ -63,7 +63,7 @@ final class ShellServiceImpl: ShellService {
 
     func executeWithXCBeautify(arguments: [String]) throws {
         let printStream = WriteStream.stdout
-        let parser = XcbeautifyLib.Parser(
+        let parser = XCBeautifier(
             colored: true,
             renderer: .terminal,
             preserveUnbeautifiedLines: true,
@@ -80,12 +80,12 @@ final class ShellServiceImpl: ShellService {
         }
     }
 
-    private func makeBeautifyStream(outputStream: WritableStream, parser: XcbeautifyLib.Parser) -> ProcessingStream {
+    private func makeBeautifyStream(outputStream: WritableStream, parser: XCBeautifier) -> ProcessingStream {
         return LineStream { line in
-            if let formatted = parser.parse(line: line) {
-                outputStream.write(formatted)
+            if let formatted = parser.format(line: line) {
+                outputStream.write(formatted + "\n")
             } else {
-                outputStream.write(line)
+                outputStream.write(line + "\n")
             }
         }
     }
