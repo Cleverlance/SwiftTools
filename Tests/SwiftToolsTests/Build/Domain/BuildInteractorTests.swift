@@ -81,6 +81,10 @@ final class ShellServiceSpy: ShellService {
         let arguments: [String]
     }
 
+    struct ExecuteWithVisibleOutput {
+        let arguments: [String]
+    }
+
     struct ExecuteWithResult {
         let arguments: [String]
     }
@@ -90,10 +94,12 @@ final class ShellServiceSpy: ShellService {
     }
 
     var executeThrowBlock: (() throws -> Void)?
+    var executeWithVisibleOutputThrowBlock: (() throws -> Void)?
     var executeWithResultThrowBlock: (() throws -> Void)?
     var executeWithResultReturn: String
     var executeWithXCBeautifyThrowBlock: (() throws -> Void)?
     var execute = [Execute]()
+    var executeWithVisibleOutput = [ExecuteWithVisibleOutput]()
     var executeWithResult = [ExecuteWithResult]()
     var executeWithXCBeautify = [ExecuteWithXCBeautify]()
 
@@ -105,6 +111,12 @@ final class ShellServiceSpy: ShellService {
         let item = Execute(arguments: arguments)
         execute.append(item)
         try executeThrowBlock?()
+    }
+
+    func executeWithVisibleOutput(arguments: [String]) throws {
+        let item = ExecuteWithVisibleOutput(arguments: arguments)
+        executeWithVisibleOutput.append(item)
+        try executeWithVisibleOutputThrowBlock?()
     }
 
     func executeWithResult(arguments: [String]) throws -> String {

@@ -10,6 +10,7 @@ import XcbeautifyLib
 
 public protocol ShellService {
     func execute(arguments: [String]) throws
+    func executeWithVisibleOutput(arguments: [String]) throws
     func executeWithResult(arguments: [String]) throws -> String
     func executeWithXCBeautify(arguments: [String]) throws
 }
@@ -24,17 +25,21 @@ final class ShellServiceImpl: ShellService {
     }
 
     func execute(arguments: [String]) throws {
-        try executeTask(arguments: arguments)
+        try executeTask(arguments: arguments, isOutputVisible: verboseController.isVerbose())
+    }
+
+    func executeWithVisibleOutput(arguments: [String]) throws {
+        try executeTask(arguments: arguments, isOutputVisible: true)
     }
 
     func executeWithResult(arguments: [String]) throws -> String {
-        return try executeTask(arguments: arguments)
+        return try executeTask(arguments: arguments, isOutputVisible: verboseController.isVerbose())
     }
 
-    @discardableResult private func executeTask(arguments: [String]) throws -> String {
+    @discardableResult private func executeTask(arguments: [String], isOutputVisible: Bool) throws -> String {
         let output = CaptureStream()
         let error = CaptureStream()
-        let outputStream = makeOutputStream(captureStream: output)
+        let outputStream = makeOutputStream(captureStream: output, isOutputVisible: isOutputVisible)
 
         let command = arguments.joined(separator: " ")
         let task = Task(executable: "/bin/bash", arguments: ["-c", command], stdout: outputStream, stderr: error)
@@ -53,8 +58,8 @@ final class ShellServiceImpl: ShellService {
         return outputString
     }
 
-    private func makeOutputStream(captureStream: CaptureStream) -> WritableStream {
-        if verboseController.isVerbose() {
+    private func makeOutputStream(captureStream: CaptureStream, isOutputVisible: Bool) -> WritableStream {
+        if isOutputVisible {
             return SplitStream(streams: [captureStream, WriteStream.stdout])
         } else {
             return captureStream
