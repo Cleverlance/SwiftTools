@@ -12,5 +12,6 @@ public final class BuildAssembly: Assembly {
 
     public func assemble(container: Container) {
         container.autoregister(BuildInteractor.self, initializer: BuildInteractorImpl.init)
+        container.autoregister(GetSimulatorIdUseCase.self, initializer: GetSimulatorIdUseCaseImp.init)
     }
 }

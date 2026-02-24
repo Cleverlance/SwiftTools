@@ -12,6 +12,7 @@ public struct TestArguments {
     public let isCodeCoverageEnabled: Bool
     public let isQuiet: Bool
     public let skipMacroValidation: Bool
+    public let simulatorId: String?
 
     public init(
         scheme: String,
@@ -19,7 +20,8 @@ public struct TestArguments {
         testPlan: String? = nil,
         isCodeCoverageEnabled: Bool = false,
         isQuiet: Bool = true,
-        skipMacroValidation: Bool = false
+        skipMacroValidation: Bool = false,
+        simulatorId: String? = nil
     ) {
         self.scheme = scheme
         self.platform = platform
@@ -27,5 +29,6 @@ public struct TestArguments {
         self.isCodeCoverageEnabled = isCodeCoverageEnabled
         self.isQuiet = isQuiet
         self.skipMacroValidation = skipMacroValidation
+        self.simulatorId = simulatorId
     }
 }

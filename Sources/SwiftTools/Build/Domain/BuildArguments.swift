@@ -9,10 +9,17 @@ public struct BuildArguments {
     public let scheme: String
     public let platform: Platform?
     public let arguments: [String]
+    public let simulatorId: String?
 
-    public init(scheme: String, platform: Platform?, arguments: [String] = []) {
+    public init(
+        scheme: String,
+        platform: Platform?,
+        arguments: [String] = [],
+        simulatorId: String? = nil
+    ) {
         self.scheme = scheme
         self.platform = platform
         self.arguments = arguments
+        self.simulatorId = simulatorId
     }
 }
