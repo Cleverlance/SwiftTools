@@ -12,67 +12,26 @@ final class BuildInteractorTests: XCTestCase {
     private var shellServiceSpy: ShellServiceSpy!
     private var printServiceSpy: PrintServiceSpy!
     private var verboseControllerSpy: VerboseControllerSpy!
+    private var getSimulatorIdUseCaseSpy: GetSimulatorIdUseCaseSpy!
     private var sut: BuildInteractorImpl!
 
     override func setUp() {
         super.setUp()
         shellServiceSpy = ShellServiceSpy(executeWithResultReturn: "")
-        shellServiceSpy.executeWithResultReturn = """
-        --- xcodebuild: WARNING: Using the first of multiple matching destinations:
-        { platform:macOS, arch:x86_64, id:B717F26A-6C7A-5DE6-A1D0-9D0374071FD0 }
-        { platform:macOS, arch:x86_64, variant:Mac Catalyst, id:B717F26A-6C7A-5DE6-A1D0-9D0374071FD0 }
-        { platform:macOS, arch:x86_64, variant:DriverKit, id:B717F26A-6C7A-5DE6-A1D0-9D0374071FD0 }
-        { platform:DriverKit, name:Any DriverKit Host }
-        { platform:iOS, id:dvtdevice-DVTiPhonePlaceholder-iphoneos:placeholder, name:Any iOS Device }
-        { platform:iOS Simulator, id:dvtdevice-DVTiOSDeviceSimulatorPlaceholder-iphonesimulator:placeholder, name:Any iOS Simulator Device }
-        { platform:macOS, name:Any Mac }
-        { platform:macOS, variant:Mac Catalyst, name:Any Mac }
-        { platform:tvOS, id:dvtdevice-DVTiOSDevicePlaceholder-appletvos:placeholder, name:Any tvOS Device, error:tvOS 16.0 is not installed. To use with Xcode, first download and install the platform }
-        { platform:watchOS, id:dvtdevice-DVTiOSDevicePlaceholder-watchos:placeholder, name:Any watchOS Device }
-        { platform:watchOS Simulator, id:dvtdevice-DVTiOSDeviceSimulatorPlaceholder-watchsimulator:placeholder, name:Any watchOS Simulator Device }
-        { platform:iOS, id:00008101-001864280E00001E, name:Kryštof - iPhone }
-        { platform:iOS, id:00008101-001864280E00001E, name:Kryštof - iPhone }
-        { platform:watchOS Simulator, id:51C4E916-A952-4BD1-80E4-43F7AC099132, OS:9.0, name:Apple Watch SE (44mm) (2nd generation) }
-        { platform:watchOS Simulator, id:BCDD1AB0-DA4E-4B0B-B3F8-9ECDEE5BB51D, OS:9.0, name:Apple Watch Series 5 - 40mm }
-        { platform:watchOS Simulator, id:BFB55B67-5033-4338-9B3A-A17B19FC912C, OS:9.0, name:Apple Watch Series 5 - 44mm }
-        { platform:watchOS Simulator, id:267B735F-5FBB-4696-B129-45AA952407FE, OS:9.0, name:Apple Watch Series 6 - 40mm }
-        { platform:watchOS Simulator, id:DDE602D0-1179-48F6-8682-1D7295BD36F7, OS:9.0, name:Apple Watch Series 6 - 44mm }
-        { platform:watchOS Simulator, id:AC36B48D-0A3E-4FE3-9B46-BCF8D02757B7, OS:9.0, name:Apple Watch Series 7 - 41mm }
-        { platform:watchOS Simulator, id:2E4044E3-D43B-4C07-9D9D-2D425B158CE0, OS:9.0, name:Apple Watch Series 7 - 45mm }
-        { platform:watchOS Simulator, id:CD2AE6CE-B23F-4D9D-9E3A-105C70B7C7DD, OS:9.0, name:Apple Watch Series 8 (41mm) }
-        { platform:watchOS Simulator, id:A7B0CF28-B1D3-47F2-8450-6CD3B6932918, OS:9.0, name:Apple Watch Series 8 (45mm) }
-        { platform:watchOS Simulator, id:A67C8286-EECA-4032-9A19-DC179700EDF2, OS:9.0, name:Apple Watch Ultra (49mm) }
-        { platform:iOS Simulator, id:40164398-DEA8-4D73-8813-CF7B2AC49090, OS:16.0, name:iPhone 14 }
-        { platform:iOS Simulator, id:65B8DC87-F312-43F3-8C72-06E490AD6F63, OS:16.0, name:iPhone 14 Plus }
-        { platform:iOS Simulator, id:A5AAC58E-85CE-4979-8BE1-AE12856A89EE, OS:16.0, name:iPhone 14 Pro }
-        { platform:iOS Simulator, id:2D31C35E-8B10-4173-9411-DB4EF76907C8, OS:16.0, name:iPhone 14 Pro Max }
-        """
         printServiceSpy = PrintServiceSpy()
         verboseControllerSpy = VerboseControllerSpy(isVerboseReturn: false)
-        sut = BuildInteractorImpl(shellService: shellServiceSpy, printService: printServiceSpy, verboseController: verboseControllerSpy)
+        getSimulatorIdUseCaseSpy = GetSimulatorIdUseCaseSpy(callAsFunctionReturn: "")
+        sut = BuildInteractorImpl(
+            shellService: shellServiceSpy,
+            printService: printServiceSpy,
+            verboseController: verboseControllerSpy,
+            getSimulatorId: getSimulatorIdUseCaseSpy
+        )
     }
 
     override func tearDown() {
         super.tearDown()
         sut = nil
-    }
-
-    func test_givenBuildDestinationsAndiOSPlatform_whenTest_thenParseCorrectDestination() throws {
-        let argumetns = TestArguments(scheme: "scheme", platform: .iOS)
-
-        try sut.test(with: argumetns)
-
-        XCTAssertEqual(shellServiceSpy.executeWithXCBeautify.count, 1)
-        XCTAssertEqual(shellServiceSpy.executeWithXCBeautify.last?.arguments[safe: 4], "\"platform=iOS Simulator,id=40164398-DEA8-4D73-8813-CF7B2AC49090\"")
-    }
-
-    func test_givenBuildDestinationsAndmacOSPlatform_whenTest_thenParseCorrectDestination() throws {
-        let argumetns = TestArguments(scheme: "scheme", platform: .macOS)
-
-        try sut.test(with: argumetns)
-
-        XCTAssertEqual(shellServiceSpy.executeWithXCBeautify.count, 1)
-        XCTAssertEqual(shellServiceSpy.executeWithXCBeautify.last?.arguments[safe: 4], "\"platform=macOS,variant=Mac Catalyst,id=B717F26A-6C7A-5DE6-A1D0-9D0374071FD0\"")
     }
 }
 
@@ -186,5 +145,27 @@ extension Array {
         else {
             return self[range]
         }
+    }
+}
+
+final class GetSimulatorIdUseCaseSpy: GetSimulatorIdUseCase {
+    struct CallAsFunction {
+        let platform: Platform
+        let scheme: String
+    }
+
+    var callAsFunctionThrowBlock: (() throws -> Void)?
+    var callAsFunctionReturn: String
+    var callAsFunction = [CallAsFunction]()
+
+    init(callAsFunctionReturn: String) {
+        self.callAsFunctionReturn = callAsFunctionReturn
+    }
+
+    func callAsFunction(for platform: Platform, scheme: String) throws -> String {
+        let item = CallAsFunction(platform: platform, scheme: scheme)
+        callAsFunction.append(item)
+        try callAsFunctionThrowBlock?()
+        return callAsFunctionReturn
     }
 }

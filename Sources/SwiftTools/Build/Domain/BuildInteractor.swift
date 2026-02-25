@@ -18,11 +18,18 @@ final class BuildInteractorImpl: BuildInteractor {
     private let shellService: ShellService
     private let printService: PrintService
     private let verboseController: VerboseController
+    private let getSimulatorId: GetSimulatorIdUseCase
 
-    init(shellService: ShellService, printService: PrintService, verboseController: VerboseController) {
+    init(
+        shellService: ShellService,
+        printService: PrintService,
+        verboseController: VerboseController,
+        getSimulatorId: GetSimulatorIdUseCase
+    ) {
         self.shellService = shellService
         self.printService = printService
         self.verboseController = verboseController
+        self.getSimulatorId = getSimulatorId
     }
 
     func build(with arguments: BuildArguments) throws {
@@ -30,7 +37,8 @@ final class BuildInteractorImpl: BuildInteractor {
             scheme: arguments.scheme,
             platform: arguments.platform,
             arguments: arguments.arguments,
-            isQuiet: !verboseController.isVerbose()
+            isQuiet: !verboseController.isVerbose(),
+            simulatorId: arguments.simulatorId
         )
         try shellService.execute(arguments: arguments)
     }
@@ -40,7 +48,8 @@ final class BuildInteractorImpl: BuildInteractor {
             scheme: arguments.scheme,
             platform: arguments.platform,
             arguments: arguments.arguments + ["-showBuildSettings"],
-            isQuiet: !verboseController.isVerbose()
+            isQuiet: !verboseController.isVerbose(),
+            simulatorId: arguments.simulatorId
         )
         return try shellService.executeWithResult(arguments: arguments)
     }
@@ -70,14 +79,21 @@ final class BuildInteractorImpl: BuildInteractor {
             scheme: arguments.scheme,
             platform: arguments.platform,
             arguments: additionalArguments,
-            isQuiet: arguments.isQuiet
+            isQuiet: arguments.isQuiet,
+            simulatorId: arguments.simulatorId
         )
     }
 
-    private func makeArguments(scheme: String, platform: Platform?, arguments: [String], isQuiet: Bool) throws -> [String] {
-        var buildArguments = ["xcodebuild", "-scheme", scheme]
+    private func makeArguments(
+        scheme: String,
+        platform: Platform?,
+        arguments: [String],
+        isQuiet: Bool,
+        simulatorId: String?
+    ) throws -> [String] {
+        var buildArguments = ["xcodebuild", "COMPILER_INDEX_STORE_ENABLE=NO", "-scheme", scheme]
         if let platform = platform {
-            let destination = try getDestination(for: platform, scheme: scheme)
+            let destination = try getDestination(for: platform, scheme: scheme, simulatorId: simulatorId)
             buildArguments += ["-destination", destination]
         }
         if isQuiet {
@@ -86,41 +102,9 @@ final class BuildInteractorImpl: BuildInteractor {
         return buildArguments + arguments
     }
 
-    private func getDestination(for platform: Platform, scheme: String) throws -> String {
-        let keys = makeSearchedKeys(for: platform)
-        let id = try getDeviceId(for: keys, scheme: scheme)
+    private func getDestination(for platform: Platform, scheme: String, simulatorId: String?) throws -> String {
+        let id = try simulatorId ?? getSimulatorId(for: platform, scheme: scheme)
         return getDestinationString(for: platform, with: id)
-    }
-
-    private func getDeviceId(for keys: [String], scheme: String) throws -> String {
-        let destinations = try shellService.executeWithResult(arguments: ["xcodebuild", "-scheme", scheme, "-showdestinations", "-quiet"])
-        printService.printVerbose(destinations)
-        let components = destinations
-            .components(separatedBy: "\n")
-        let destination = try components.first(where: { isRowValid(keys: keys, row: $0) }) ?!+ "missing simulator"
-        let attributes = destination.split(separator: " ")
-        let idKeyValue = try attributes.first(where: { $0.starts(with: "id:") }) ?!+ "missing id in simulator row"
-        var id = idKeyValue.dropFirst(3)
-
-        if idKeyValue.last == "," {
-            id = id.dropLast(1)
-        }
-
-        printService.printVerbose("Selecting device with id: \(id), for keys: \(keys)")
-        return String(id)
-    }
-
-    private func isRowValid(keys: [String], row: String) -> Bool {
-        return keys.reduce(true, { $0 && row.contains($1) })
-    }
-
-    private func makeSearchedKeys(for platform: Platform) -> [String] {
-        switch platform {
-        case .iOS:
-            return ["platform:iOS Simulator", " OS:"]
-        case .macOS:
-            return ["variant:Mac Catalyst"]
-        }
     }
 
     private func getDestinationString(for platform: Platform, with id: String) -> String {
