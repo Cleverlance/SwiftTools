@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import XcbeautifyLib
 
 public protocol BuildInteractor {
     func build(with arguments: BuildArguments) throws
@@ -56,7 +57,34 @@ final class BuildInteractorImpl: BuildInteractor {
 
     func test(with arguments: TestArguments) throws {
         let arguments = try makeArguments(from: arguments)
-        try shellService.executeWithXCBeautify(arguments: arguments)
+
+        let parser = XCBeautifier(
+            colored: true,
+            renderer: .terminal,
+            preserveUnbeautifiedLines: true,
+            additionalLines: { nil }
+        )
+
+        let output = OutputHandler(quiet: false, quieter: true, isCI: false) { line in
+            let normalizedLine = line.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !normalizedLine.isEmpty {
+                if !normalizedLine.hasPrefix("Executed") && !normalizedLine.hasPrefix("Test Suite") {
+                    print(line)
+                }
+            }
+        }
+
+        try shellService.executeWithProcessing(
+            arguments: arguments,
+            onProcessLine: { line in
+                guard let result = parser.process(line: line) else {
+                    output.write(.undefined, line)
+                    return
+                }
+
+                output.write(result.outputType, result.formatted)
+            }
+        )
     }
 
     func testWithLog(with arguments: TestArguments) throws -> String {
@@ -95,9 +123,6 @@ final class BuildInteractorImpl: BuildInteractor {
         if let platform = platform {
             let destination = try getDestination(for: platform, scheme: scheme, simulatorId: simulatorId)
             buildArguments += ["-destination", destination]
-        }
-        if isQuiet {
-            buildArguments += ["-quiet"]
         }
         return buildArguments + arguments
     }

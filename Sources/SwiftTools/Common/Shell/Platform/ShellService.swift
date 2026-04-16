@@ -1,97 +1,102 @@
-//
-//  File.swift
-//
-//
-//  Created by Kryštof Matěj on 05.01.2021.
-//
-
-import SwiftCLI
-import XcbeautifyLib
+import Foundation
 
 public protocol ShellService {
     func execute(arguments: [String]) throws
-    func executeWithVisibleOutput(arguments: [String]) throws
     func executeWithResult(arguments: [String]) throws -> String
-    func executeWithXCBeautify(arguments: [String]) throws
+    func executeWithProcessing(arguments: [String], onProcessLine: @escaping (String) -> Void) throws
 }
 
-final class ShellServiceImpl: ShellService {
-    private let printService: PrintService
-    private let verboseController: VerboseController
+nonisolated(unsafe) private var processes: [Process] = []
 
-    init(printService: PrintService, verboseController: VerboseController) {
+private func handleSignal(_ sig: Int32) {
+    for p in processes where p.isRunning {
+        kill(-p.processIdentifier, sig)
+    }
+
+    exit(sig)
+}
+
+final class ShellServiceImpl: ShellService, @unchecked Sendable {
+    private let printService: PrintService
+
+    init(printService: PrintService) {
         self.printService = printService
-        self.verboseController = verboseController
+        self.setupSignalHandlers()
+    }
+
+    private func setupSignalHandlers() {
+        signal(SIGINT) { _ in
+            print("Killing self SIGINT, processes:\(processes.map(\.processIdentifier).map({ "\($0)"}).joined(separator: ", "))")
+            handleSignal(SIGINT)
+        }
+
+        signal(SIGTERM) { _ in
+            print("Killing self SIGTERM, processes:\(processes.map(\.processIdentifier).map({ "\($0)"}).joined(separator: ", "))")
+            handleSignal(SIGTERM)
+        }
     }
 
     func execute(arguments: [String]) throws {
-        try executeTask(arguments: arguments, isOutputVisible: verboseController.isVerbose())
-    }
-
-    func executeWithVisibleOutput(arguments: [String]) throws {
-        try executeTask(arguments: arguments, isOutputVisible: true)
+        try executeWithProcessing(arguments: arguments, onProcessLine: { line in
+            self.printService.printVerbose(line)
+        })
     }
 
     func executeWithResult(arguments: [String]) throws -> String {
-        return try executeTask(arguments: arguments, isOutputVisible: verboseController.isVerbose())
+        var output = ""
+        try executeWithProcessing(arguments: arguments, onProcessLine: { line in
+            self.printService.printVerbose(line)
+            output += line + "\n"
+        })
+        return output
     }
 
-    @discardableResult private func executeTask(arguments: [String], isOutputVisible: Bool) throws -> String {
-        let output = CaptureStream()
-        let error = CaptureStream()
-        let outputStream = makeOutputStream(captureStream: output, isOutputVisible: isOutputVisible)
-
+    func executeWithProcessing(arguments: [String], onProcessLine: @escaping (String) -> Void) throws {
         let command = arguments.joined(separator: " ")
-        let task = Task(executable: "/bin/bash", arguments: ["-c", command], stdout: outputStream, stderr: error)
-        printService.printVerbose("shell command: '\(command)'") 
-        let exitCode = task.runSync()
+        let process = Process()
+        let pipe = Pipe()
 
-        let outputString = output.readAll()
+        printService.printVerbose("shell command: '\(command)'")
+        process.executableURL = URL(fileURLWithPath: "/bin/bash")
+        process.arguments = ["-c", command]
+        process.standardOutput = pipe
+        process.standardError = pipe
 
-        guard exitCode == 0 else {
-            let errorMessage = error.readAll()
-            printService.printText("Command output: \(outputString)")
-            printService.printText("Command error: \(errorMessage)")
-            let message = !errorMessage.isEmpty ? errorMessage : outputString
-            throw ToolsError(description: "shell command: '\(command)' failed with error: '\(message)'")
+        let handle = pipe.fileHandleForReading
+        var buffer = Data()
+
+
+        try process.run()
+        addProcessToChildManagement(process: process)
+
+        while true {
+            let data = handle.availableData
+            if data.isEmpty { break }
+            buffer.append(data)
+
+            while let range = buffer.firstRange(of: Data([0x0A])) {
+                let lineData = buffer.subdata(in: 0..<range.lowerBound)
+                buffer.removeSubrange(0...range.lowerBound)
+
+                if let line = String(data: lineData, encoding: .utf8) {
+                    onProcessLine(line)
+                }
+            }
         }
-        return outputString
-    }
 
-    private func makeOutputStream(captureStream: CaptureStream, isOutputVisible: Bool) -> WritableStream {
-        if isOutputVisible {
-            return SplitStream(streams: [captureStream, WriteStream.stdout])
-        } else {
-            return captureStream
-        }
-    }
+        process.waitUntilExit()
 
-    func executeWithXCBeautify(arguments: [String]) throws {
-        let printStream = WriteStream.stdout
-        let parser = XCBeautifier(
-            colored: true,
-            renderer: .terminal,
-            preserveUnbeautifiedLines: true,
-            additionalLines: { nil }
-        )
-        let outputStream = makeBeautifyStream(outputStream: printStream, parser: parser)
-
-        let command = arguments.joined(separator: " ")
-        let task = Task(executable: "/bin/bash", arguments: ["-c", command], stdout: outputStream)
-        let exitCode = task.runSync()
-
-        guard exitCode == 0 else {
+        guard process.terminationStatus == 0 else {
             throw ToolsError(description: "shell command: '\(command)' failed with error")
         }
     }
 
-    private func makeBeautifyStream(outputStream: WritableStream, parser: XCBeautifier) -> ProcessingStream {
-        return LineStream { line in
-            if let formatted = parser.format(line: line) {
-                outputStream.write(formatted + "\n")
-            } else {
-                outputStream.write(line + "\n")
-            }
+    private func addProcessToChildManagement(process: Process) {
+        processes.append(process)
+        printService.printVerbose("Added processes:\(processes.map(\.processIdentifier).map({ "\($0)"}).joined(separator: ", "))")
+        process.terminationHandler = { process in
+            processes.removeAll { $0 === process }
+            self.printService.printVerbose("Removed processes:\(processes.map(\.processIdentifier).map({ "\($0)"}).joined(separator: ", "))")
         }
     }
 }

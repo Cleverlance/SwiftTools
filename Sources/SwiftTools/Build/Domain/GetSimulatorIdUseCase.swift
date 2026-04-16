@@ -5,12 +5,10 @@ public protocol GetSimulatorIdUseCase {
 final class GetSimulatorIdUseCaseImp: GetSimulatorIdUseCase {
     private let shellService: ShellService
     private let printService: PrintService
-    private let verboseController: VerboseController
 
-    init(shellService: ShellService, printService: PrintService, verboseController: VerboseController) {
+    init(shellService: ShellService, printService: PrintService) {
         self.shellService = shellService
         self.printService = printService
-        self.verboseController = verboseController
     }
 
     func callAsFunction(for platform: Platform, scheme: String) throws -> String {
@@ -20,7 +18,6 @@ final class GetSimulatorIdUseCaseImp: GetSimulatorIdUseCase {
 
     private func getDeviceId(for keys: [String], scheme: String) throws -> String {
         let destinations = try shellService.executeWithResult(arguments: ["xcodebuild", "-scheme", scheme, "-showdestinations", "-quiet"])
-        printService.printVerbose(destinations)
         let components = destinations
             .components(separatedBy: "\n")
         let destination = try components.first(where: { isRowValid(keys: keys, row: $0) }) ?!+ "missing simulator"
