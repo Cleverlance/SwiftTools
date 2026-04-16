@@ -40,27 +40,22 @@ final class ShellServiceSpy: ShellService {
         let arguments: [String]
     }
 
-    struct ExecuteWithVisibleOutput {
-        let arguments: [String]
-    }
-
     struct ExecuteWithResult {
         let arguments: [String]
     }
 
-    struct ExecuteWithXCBeautify {
+    struct ExecuteWithProcessing {
         let arguments: [String]
+        let onProcessLine: (String) -> Void
     }
 
     var executeThrowBlock: (() throws -> Void)?
-    var executeWithVisibleOutputThrowBlock: (() throws -> Void)?
     var executeWithResultThrowBlock: (() throws -> Void)?
     var executeWithResultReturn: String
-    var executeWithXCBeautifyThrowBlock: (() throws -> Void)?
+    var executeWithProcessingThrowBlock: (() throws -> Void)?
     var execute = [Execute]()
-    var executeWithVisibleOutput = [ExecuteWithVisibleOutput]()
     var executeWithResult = [ExecuteWithResult]()
-    var executeWithXCBeautify = [ExecuteWithXCBeautify]()
+    var executeWithProcessing = [ExecuteWithProcessing]()
 
     init(executeWithResultReturn: String) {
         self.executeWithResultReturn = executeWithResultReturn
@@ -72,12 +67,6 @@ final class ShellServiceSpy: ShellService {
         try executeThrowBlock?()
     }
 
-    func executeWithVisibleOutput(arguments: [String]) throws {
-        let item = ExecuteWithVisibleOutput(arguments: arguments)
-        executeWithVisibleOutput.append(item)
-        try executeWithVisibleOutputThrowBlock?()
-    }
-
     func executeWithResult(arguments: [String]) throws -> String {
         let item = ExecuteWithResult(arguments: arguments)
         executeWithResult.append(item)
@@ -85,10 +74,10 @@ final class ShellServiceSpy: ShellService {
         return executeWithResultReturn
     }
 
-    func executeWithXCBeautify(arguments: [String]) throws {
-        let item = ExecuteWithXCBeautify(arguments: arguments)
-        executeWithXCBeautify.append(item)
-        try executeWithXCBeautifyThrowBlock?()
+    func executeWithProcessing(arguments: [String], onProcessLine: @escaping (String) -> Void) throws {
+        let item = ExecuteWithProcessing(arguments: arguments, onProcessLine: onProcessLine)
+        executeWithProcessing.append(item)
+        try executeWithProcessingThrowBlock?()
     }
 }
 

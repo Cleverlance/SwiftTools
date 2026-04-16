@@ -52,7 +52,6 @@ final class GetSimulatorIdUseCaseTests: XCTestCase {
         sut = GetSimulatorIdUseCaseImp(
             shellService: shellServiceSpy,
             printService: printServiceSpy,
-            verboseController: verboseControllerSpy,
         )
     }
 
