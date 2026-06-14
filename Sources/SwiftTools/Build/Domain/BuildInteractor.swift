@@ -64,11 +64,16 @@ final class BuildInteractorImpl: BuildInteractor {
             preserveUnbeautifiedLines: true,
             additionalLines: { nil }
         )
+        let isVerbose = verboseController.isVerbose()
 
-        let output = OutputHandler(quiet: false, quieter: true, isCI: false) { line in
+        let output = OutputHandler(
+            quiet: false || isVerbose,
+            quieter: true || isVerbose,
+            isCI: false
+        ) { line in
             let normalizedLine = line.trimmingCharacters(in: .whitespacesAndNewlines)
             if !normalizedLine.isEmpty {
-                if !normalizedLine.hasPrefix("Executed") && !normalizedLine.hasPrefix("Test Suite") {
+                if !normalizedLine.hasPrefix("Executed") && !normalizedLine.hasPrefix("Test Suite") || isVerbose {
                     print(line)
                 }
             }
